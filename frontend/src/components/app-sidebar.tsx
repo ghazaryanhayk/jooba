@@ -4,27 +4,19 @@ import * as React from 'react';
 import { Link } from 'react-router-dom';
 
 import { NavMain } from '@/components/nav-main';
-import { NavSecondary } from '@/components/nav-secondary';
-import { NavUser } from '@/components/nav-user';
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { LayoutDashboardIcon, LifeBuoyIcon, SendIcon, Settings2Icon, TerminalIcon } from 'lucide-react';
+import { LayoutDashboardIcon, SearchIcon, Settings2Icon, TerminalIcon } from 'lucide-react';
 
 import { SearchForm } from './search-form';
 
 const data = {
-  user: {
-    name: 'shadcn',
-    email: 'm@example.com',
-    avatar: '/avatars/shadcn.jpg',
-  },
   navMain: [
     {
       title: 'Dashboard',
@@ -36,18 +28,11 @@ const data = {
       url: '/settings',
       icon: <Settings2Icon />,
     },
-  ],
-  navSecondary: [
     {
-      title: 'Support',
-      url: 'mailto:support@example.com',
-      icon: <LifeBuoyIcon />,
-    },
-    {
-      title: 'Feedback',
-      url: 'mailto:feedback@example.com',
-      icon: <SendIcon />,
-    },
+      title: 'Search',
+      url: '/search',
+      icon: <SearchIcon />,
+    }
   ],
 };
 
@@ -74,11 +59,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={data.user} />
-      </SidebarFooter>
     </Sidebar>
   );
 }
