@@ -6,6 +6,7 @@ import {
 } from '@/components/ui/accordion';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
+import { ScrollArea } from '../ui/scroll-area';
 
 const FILTER_SECTIONS = [
   {
@@ -28,7 +29,7 @@ const FILTER_SECTIONS = [
 
 export function FilterPanel() {
   return (
-    <div className="shrink-0 border-r h-full overflow-y-auto">
+    <div className="shrink-0 border-r">
       <div className="pl-4 pr-1.5 py-2 h-11 flex items-center">
         <div className="flex items-center gap-2 flex-1">
           <h2 className="font-medium text-gray-900">Filters</h2>
@@ -36,23 +37,27 @@ export function FilterPanel() {
         </div>
         <Button variant="link" size="sm">Reset</Button>
       </div>
-      <Accordion type="multiple">
-        {FILTER_SECTIONS.map((section) => (
-          <div key={section.label}>
-            <div className="text-sm text-muted-foreground font-medium px-4 py-3 border-y border-gray-200 bg-gray-50">{section.label}</div>
-            {section.filters.map((filter) => (
-              <AccordionItem key={filter} value={`${section.label}-${filter}`}>
-                <AccordionTrigger className="text-sm px-4 py-3 rounded-none hover:no-underline hover:bg-gray-50 items-center">
-                  {filter}
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pb-2">
-                  Filter options will go here...
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </div>
-        ))}
-      </Accordion>
+      <ScrollArea className="h-[calc(100vh-126px)] border-t border-gray-200">
+        <Accordion type="multiple">
+          {FILTER_SECTIONS.map((section) => (
+            <div key={section.label} className="border-b border-gray-200 last:border-b-0">
+              <div className="text-sm text-muted-foreground font-medium px-4 py-3 border-b border-gray-200 bg-gray-50">{section.label}</div>
+
+              {section.filters.map((filter) => (
+                <AccordionItem key={filter} value={`${section.label}-${filter}`}>
+                  <AccordionTrigger className="text-sm px-4 py-3 rounded-none hover:no-underline hover:bg-gray-50 items-center">
+                    {filter}
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-2">
+                    Filter options will go here...
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+
+            </div>
+          ))}
+        </Accordion>
+      </ScrollArea>
     </div>
   );
 }
