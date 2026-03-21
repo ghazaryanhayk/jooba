@@ -1,9 +1,9 @@
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { CandidateItem, type Candidate } from './candidate-item';
 import { ItemGroup } from '../ui/item';
+import { CandidateItem, type CandidateProps } from '../common/candidate-item';
 
-const MOCK_CANDIDATES: Candidate[] = [
+const MOCK_CANDIDATES: CandidateProps[] = [
   { name: 'Elisa Murazik', title: 'Machine Learning Engineer', company: 'Alphabet', bio: 'Exploring the Vibrant Streets of Manhattan, NY' },
   { name: 'Jordan Heller', title: 'Software Engineer', company: 'Google', bio: 'Uncovering Hidden Gems in NYC' },
   { name: 'Sophie Ramirez', title: 'Data Scientist', company: 'DeepMind', bio: 'Living the New York Experience: A City Like No Other' },
@@ -70,8 +70,8 @@ export function CandidateList() {
         </Button>
       </div>
 
-      <ScrollArea className="flex-1 border-t border-gray-200 h-[calc(100vh-128px)]">
-        <ItemGroup className="p-2 gap-1">
+      <ScrollArea className="flex-1 border-t border-gray-200 h-[calc(100vh-101px)]">
+        <ItemGroup className="p-1 gap-1">
           {MOCK_CANDIDATES.map((candidate) => (
             <CandidateItem key={candidate.name} {...candidate} />
           ))}

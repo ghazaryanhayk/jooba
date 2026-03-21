@@ -37,7 +37,7 @@ export function FilterPanel() {
         </div>
         <Button variant="link" size="sm">Reset</Button>
       </div>
-      <ScrollArea className="h-[calc(100vh-126px)] border-t border-gray-200">
+      <ScrollArea className="h-[calc(100vh-101px)] border-t border-gray-200">
         <Accordion type="multiple">
           {FILTER_SECTIONS.map((section) => (
             <div key={section.label} className="border-b border-gray-200 last:border-b-0">

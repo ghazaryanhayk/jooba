@@ -12,7 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { LayoutDashboardIcon, SearchIcon, Settings2Icon, TerminalIcon } from 'lucide-react';
+import { BarChartIcon, LayoutDashboardIcon, SearchIcon, TerminalIcon } from 'lucide-react';
 
 import { SearchForm } from './search-form';
 
@@ -24,14 +24,14 @@ const data = {
       icon: <LayoutDashboardIcon />,
     },
     {
-      title: 'Settings',
-      url: '/settings',
-      icon: <Settings2Icon />,
-    },
-    {
       title: 'Search',
       url: '/search',
       icon: <SearchIcon />,
+    },
+    {
+      title: 'Ranking',
+      url: '/ranking',
+      icon: <BarChartIcon />,
     }
   ],
 };
