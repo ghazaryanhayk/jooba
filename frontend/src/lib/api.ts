@@ -1,4 +1,5 @@
 import type { FilterFormValues } from '@/components/search/filters/schema';
+import type { CriteriaFormValues } from '@/components/ranking/criteria-schema';
 
 export interface CandidateSchema {
   name: string;
@@ -50,6 +51,37 @@ export async function getRoleCandidates(roleId: string): Promise<RoleCandidatesR
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
     throw new Error(error.detail ?? `Failed to fetch candidates: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+export interface RankingResponse {
+  candidates: CandidateSchema[];
+  preview_count: number;
+  total_count: number;
+  stats: { approved: number; rejected: number };
+  tiers: { A: number; B: number; C: number; D: number; F: number };
+}
+
+export async function runRanking(
+  candidates: CandidateSchema[],
+  criteria: CriteriaFormValues,
+): Promise<RankingResponse> {
+  const response = await fetch('/api/ranking/run', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      candidates,
+      general_intuition: criteria.general_intuition,
+      must_haves: criteria.must_haves.map((x) => x.value).filter(Boolean),
+      nice_to_haves: criteria.nice_to_haves.map((x) => x.value).filter(Boolean),
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.detail ?? `Ranking failed: ${response.status}`);
   }
 
   return response.json();

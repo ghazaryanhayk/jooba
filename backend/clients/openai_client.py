@@ -3,7 +3,6 @@ from pydantic import BaseModel
 
 from core.config import settings
 from schemas.candidate import ApprovalStatus, CandidateSchema, Tier
-from schemas.ranking import RankingCriteria
 
 
 class _RankedItem(BaseModel):
@@ -25,14 +24,29 @@ class OpenAIClient:
     async def rank_candidates(
         self,
         candidates: list[CandidateSchema],
-        criteria: list[RankingCriteria],
+        general_intuition: str = '',
+        must_haves: list[str] | None = None,
+        nice_to_haves: list[str] | None = None,
     ) -> list[CandidateSchema]:
         if not candidates:
             return []
 
-        criteria_text = '\n'.join(
-            f'- {c.description} (weight: {c.weight})' for c in criteria
-        )
+        must_haves = must_haves or []
+        nice_to_haves = nice_to_haves or []
+
+        criteria_parts: list[str] = []
+        if general_intuition.strip():
+            criteria_parts.append(f'General intuition: {general_intuition.strip()}')
+        if must_haves:
+            items = '\n'.join(f'  - {item}' for item in must_haves if item.strip())
+            if items:
+                criteria_parts.append(f'Must haves:\n{items}')
+        if nice_to_haves:
+            items = '\n'.join(f'  - {item}' for item in nice_to_haves if item.strip())
+            if items:
+                criteria_parts.append(f'Nice to haves:\n{items}')
+
+        criteria_text = '\n\n'.join(criteria_parts) if criteria_parts else 'No specific criteria provided.'
 
         candidates_text = '\n'.join(
             f'{i + 1}. Name: {c.name} | Title: {c.title} | Company: {c.company} | Headline: {c.headline} | Summary: {c.summary}'
@@ -54,7 +68,7 @@ For each candidate assign:
 
 Return results for ALL candidates in the same order."""
 
-        response = await self._client.beta.parsers.parse(
+        response = await self._client.beta.chat.completions.parse(
             model=self._model,
             messages=[{'role': 'user', 'content': prompt}],
             response_format=_RankingOutput,

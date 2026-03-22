@@ -1,18 +1,38 @@
+import { Loader2Icon } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { ItemGroup } from '@/components/ui/item';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRoleCandidates } from '@/hooks/use-role-candidates';
+import type { CandidateSchema } from '@/lib/api';
 import { CandidateItem } from '../common/candidate-item';
 
 interface RankedCandidateListProps {
   roleId: string;
+  rankedCandidates: CandidateSchema[] | null;
+  onPreview: (candidates: CandidateSchema[]) => void;
+  isPreviewing: boolean;
 }
 
-export function RankedCandidateList({ roleId }: RankedCandidateListProps) {
+const STATS = [
+  { label: 'Approved', value: 43, color: 'bg-green-700' },
+  { label: 'Rejected', value: 47, color: 'bg-red-700' },
+];
+
+const TIERS = [
+  { label: 'A tier', value: 14, color: 'bg-green-700' },
+  { label: 'B tier', value: 9, color: 'bg-blue-700' },
+  { label: 'C tier', value: 2, color: 'bg-yellow-700' },
+  { label: 'D tier', value: 50, color: 'bg-orange-700' },
+  { label: 'F tier', value: 75, color: 'bg-red-700' },
+];
+
+export function RankedCandidateList({ roleId, rankedCandidates, onPreview, isPreviewing }: RankedCandidateListProps) {
   const { data, isLoading, isError, error } = useRoleCandidates(roleId);
 
-  const candidates = data?.candidates ?? [];
+  const sourceCandidates = data?.candidates ?? [];
+  const candidates = rankedCandidates ?? sourceCandidates;
 
   return (
     <div className="">
@@ -22,11 +42,41 @@ export function RankedCandidateList({ roleId }: RankedCandidateListProps) {
             Showing <span className="font-medium text-foreground">{candidates.length}</span> candidates
           </span>
         )}
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={isPreviewing || isLoading || sourceCandidates.length === 0}
+          onClick={() => onPreview(sourceCandidates)}
+        >
+          {isPreviewing && <Loader2Icon className="animate-spin" />}
+          Preview
+        </Button>
         <Button size="sm" variant="outline" disabled>Run full ranking</Button>
         <Button size="sm" variant="default" disabled>Publish</Button>
       </div>
 
-      <ScrollArea className="flex-1 border-t border-gray-200 h-[calc(100vh-101px)]">
+      <div className="flex items-center justify-between gap-4 px-4 py-2 border-t border-gray-200 shrink-0 h-10">
+        <div className="flex items-center gap-5">
+          {STATS.map((stat) => (
+            <div key={stat.label} className="text-xs flex items-center gap-2">
+              <span className={`${stat.color} inline-block rounded-full size-2`} />
+              <span className="font-medium text-muted-foreground">{stat.label}</span>{' '}
+              <span className="font-semibold">{stat.value}</span>
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center gap-5">
+          {TIERS.map((tier) => (
+            <div key={tier.label} className="text-xs flex items-center gap-2">
+              <span className={`${tier.color} inline-block rounded-full size-2`} />
+              <span className="font-medium text-muted-foreground">{tier.label}</span>{' '}
+              <span className="font-semibold">{tier.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <ScrollArea className="flex-1 border-t border-gray-200 h-[calc(100vh-145px)]">
         {isLoading && (
           <div className="p-2 space-y-1">
             {Array.from({ length: 8 }).map((_, i) => (

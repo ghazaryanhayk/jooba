@@ -12,7 +12,9 @@ async def rank(request: RankingRequest) -> RankingResponse:
 
     ranked_candidates = await openai_client.rank_candidates(
         candidates=request.candidates,
-        criteria=request.criteria,
+        general_intuition=request.general_intuition,
+        must_haves=request.must_haves,
+        nice_to_haves=request.nice_to_haves,
     )
 
     tier_counts = TierCounts()

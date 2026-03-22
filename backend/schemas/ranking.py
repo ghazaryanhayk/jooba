@@ -1,16 +1,13 @@
 from pydantic import BaseModel
 
-from schemas.candidate import CandidateSchema, Tier
-
-
-class RankingCriteria(BaseModel):
-    description: str
-    weight: float = 1.0
+from schemas.candidate import CandidateSchema
 
 
 class RankingRequest(BaseModel):
     candidates: list[CandidateSchema]
-    criteria: list[RankingCriteria]
+    general_intuition: str = ''
+    must_haves: list[str] = []
+    nice_to_haves: list[str] = []
 
 
 class TierCounts(BaseModel):
