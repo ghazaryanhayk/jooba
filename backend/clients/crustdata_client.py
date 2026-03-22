@@ -33,7 +33,6 @@ class CrustDataClient:
         preview_only: bool = True,
     ) -> tuple[list[CandidateSchema], int]:
         payload = _build_search_payload(filters, preview_only)
-        print(payload)
         async with httpx.AsyncClient(base_url=CRUSTDATA_BASE_URL, timeout=30.0) as client:
             response = await client.post(
                 '/screener/persondb/search',
