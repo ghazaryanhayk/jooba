@@ -9,7 +9,7 @@ from db.models.search import Search, SearchStatus
 from db.models.search_candidate import SearchCandidate
 from db.session import get_db
 from schemas.candidate import CandidateSchema
-from schemas.role import RunSearchRequest, RunSearchResponse
+from schemas.role import RoleCandidatesResponse, RunSearchRequest, RunSearchResponse
 
 router = APIRouter(prefix='/roles', tags=['roles'])
 
@@ -86,4 +86,46 @@ async def run_full_search(
         candidates=response_candidates,
         preview_count=len(response_candidates),
         total_count=total_count,
+    )
+
+
+@router.get('/{role_id}/candidates', response_model=RoleCandidatesResponse)
+async def get_role_candidates(
+    role_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> RoleCandidatesResponse:
+    role_result = await db.execute(select(Role).where(Role.id == role_id))
+    if role_result.scalar_one_or_none() is None:
+        raise HTTPException(status_code=404, detail='Role not found')
+
+    search_result = await db.execute(
+        select(Search)
+        .where(Search.role_id == role_id, Search.status == SearchStatus.completed)
+        .order_by(Search.created_at.desc())
+        .limit(1)
+    )
+    search = search_result.scalar_one_or_none()
+    if search is None:
+        raise HTTPException(status_code=404, detail='No completed search found for this role')
+
+    candidates_result = await db.execute(
+        select(Candidate)
+        .join(SearchCandidate, SearchCandidate.candidate_id == Candidate.id)
+        .where(SearchCandidate.search_id == search.id)
+    )
+    candidate_rows = candidates_result.scalars().all()
+
+    return RoleCandidatesResponse(
+        search_id=search.id,
+        candidates=[
+            CandidateSchema(
+                name=row.name,
+                title=row.title,
+                company=row.company,
+                headline=row.headline,
+                summary=row.summary,
+                avatar_url=row.avatar_url,
+            )
+            for row in candidate_rows
+        ],
     )

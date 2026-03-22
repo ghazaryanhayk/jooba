@@ -23,7 +23,7 @@ export const router = createBrowserRouter([
         handle: { crumb: 'Search' },
       },
       {
-        path: 'ranking',
+        path: 'roles/:roleId/ranking',
         element: <RankingPage />,
         handle: { crumb: 'Ranking' },
       },

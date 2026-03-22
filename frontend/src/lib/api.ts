@@ -39,6 +39,22 @@ export async function searchCandidates(
   return response.json();
 }
 
+export interface RoleCandidatesResponse {
+  candidates: CandidateSchema[];
+  search_id: string;
+}
+
+export async function getRoleCandidates(roleId: string): Promise<RoleCandidatesResponse> {
+  const response = await fetch(`/api/roles/${roleId}/candidates`);
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.detail ?? `Failed to fetch candidates: ${response.status}`);
+  }
+
+  return response.json();
+}
+
 export async function runFullSearch(
   roleId: string,
   filters: FilterFormValues,
