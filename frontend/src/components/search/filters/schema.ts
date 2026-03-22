@@ -29,3 +29,9 @@ export const defaultFilterValues: FilterFormValues = {
   country: [{ operator: 'is', value: '' }],
   experience: { from: '', to: '' },
 };
+
+export const suggestedFilters: FilterFormValues = {
+  title: [{ operator: 'is', value: 'Senior Software Engineer', timeframe: 'current' }],
+  country: [{ operator: 'is', value: 'United States' }],
+  experience: { from: '2', to: '10' },
+};

@@ -6,14 +6,16 @@ import { useSearch } from '@/hooks/use-search';
 import { ItemGroup } from '../ui/item';
 import { CandidateItem } from '../common/candidate-item';
 import type { CandidateSchema } from '@/lib/api';
-import type { FilterFormValues } from './filters/schema';
+import { suggestedFilters, type FilterFormValues } from './filters/schema';
 
 interface CandidateListProps {
   roleId: string;
   filters: FilterFormValues | null;
+  savedFilters: FilterFormValues | null;
+  onApplyFilters: (filters: FilterFormValues) => void;
 }
 
-export function CandidateList({ roleId, filters }: CandidateListProps) {
+export function CandidateList({ roleId, filters, savedFilters, onApplyFilters }: CandidateListProps) {
   const { data: previewData, isLoading: isPreviewLoading, isError, error } = useSearch(filters);
   const { mutate, isPending, isSuccess, data: fullData, error: fullError } = useRunFullSearch(roleId);
 
@@ -102,8 +104,16 @@ export function CandidateList({ roleId, filters }: CandidateListProps) {
         )}
 
         {!isLoading && !(isError || fullError) && !displayData && (
-          <div className="flex items-center justify-center h-48">
+          <div className="flex flex-col items-center justify-center gap-3 h-48 text-center">
             <p className="text-sm text-muted-foreground">Apply filters and search to see candidates.</p>
+            <Button
+              variant="outline"
+              size="sm"
+              type="button"
+              onClick={() => onApplyFilters(savedFilters ?? suggestedFilters)}
+            >
+              {savedFilters ? 'Apply last search' : 'Apply suggested filters'}
+            </Button>
           </div>
         )}
       </ScrollArea>

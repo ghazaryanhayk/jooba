@@ -102,6 +102,21 @@ export async function runRanking(
   return response.json();
 }
 
+export interface RoleFiltersResponse {
+  filters: FilterFormValues | null;
+}
+
+export async function getRoleFilters(roleId: string): Promise<RoleFiltersResponse> {
+  const response = await fetch(`/api/roles/${roleId}/filters`);
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.detail ?? `Failed to fetch role filters: ${response.status}`);
+  }
+
+  return response.json();
+}
+
 export async function runFullSearch(
   roleId: string,
   filters: FilterFormValues,

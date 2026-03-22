@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ChevronRightIcon } from 'lucide-react';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
@@ -42,13 +43,18 @@ const FILTERS: Record<string, { label: string, value: string, component?: React.
 
 interface FilterPanelProps {
   onSearch: (filters: FilterFormValues) => void;
+  externalFilters?: FilterFormValues | null;
 }
 
-export function FilterPanel({ onSearch }: FilterPanelProps) {
+export function FilterPanel({ onSearch, externalFilters }: FilterPanelProps) {
   const methods = useForm<FilterFormValues>({
     resolver: zodResolver(filterSchema),
     defaultValues: defaultFilterValues,
   });
+
+  useEffect(() => {
+    if (externalFilters) methods.reset(externalFilters);
+  }, [externalFilters]);
 
   const onSubmit = (data: FilterFormValues) => {
     onSearch(data);

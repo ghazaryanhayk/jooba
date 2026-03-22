@@ -9,7 +9,7 @@ from db.models.search import Search, SearchStatus
 from db.models.search_candidate import SearchCandidate
 from db.session import get_db
 from schemas.candidate import CandidateSchema
-from schemas.role import RoleCandidatesResponse, RoleSchema, RolesResponse, RunSearchRequest, RunSearchResponse
+from schemas.role import RoleCandidatesResponse, RoleFiltersResponse, RoleSchema, RolesResponse, RunSearchRequest, RunSearchResponse
 
 router = APIRouter(prefix='/roles', tags=['roles'])
 
@@ -93,6 +93,18 @@ async def run_full_search(
         preview_count=len(response_candidates),
         total_count=total_count,
     )
+
+
+@router.get('/{role_id}/filters', response_model=RoleFiltersResponse)
+async def get_role_filters(
+    role_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> RoleFiltersResponse:
+    result = await db.execute(select(Role).where(Role.id == role_id))
+    role = result.scalar_one_or_none()
+    if role is None:
+        raise HTTPException(status_code=404, detail='Role not found')
+    return RoleFiltersResponse(filters=role.filters)
 
 
 @router.get('/{role_id}/candidates', response_model=RoleCandidatesResponse)

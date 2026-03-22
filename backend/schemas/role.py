@@ -24,3 +24,7 @@ class RunSearchResponse(SearchResponse):
 class RoleCandidatesResponse(BaseModel):
     candidates: list[CandidateSchema]
     search_id: str
+
+
+class RoleFiltersResponse(BaseModel):
+    filters: dict | None
