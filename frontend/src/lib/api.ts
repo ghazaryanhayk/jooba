@@ -17,6 +17,10 @@ export interface SearchResponse {
   total_count: number;
 }
 
+export interface RunSearchResponse extends SearchResponse {
+  search_id: string;
+}
+
 export async function searchCandidates(
   filters: FilterFormValues,
   previewOnly = true,
@@ -30,6 +34,24 @@ export async function searchCandidates(
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
     throw new Error(error.detail ?? `Search failed: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+export async function runFullSearch(
+  roleId: string,
+  filters: FilterFormValues,
+): Promise<RunSearchResponse> {
+  const response = await fetch(`/api/roles/${roleId}/searches/run`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ filters }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.detail ?? `Full search failed: ${response.status}`);
   }
 
   return response.json();

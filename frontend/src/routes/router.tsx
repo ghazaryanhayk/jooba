@@ -18,7 +18,7 @@ export const router = createBrowserRouter([
         handle: { crumb: 'Dashboard' },
       },
       {
-        path: 'search',
+        path: 'roles/:roleId/search',
         element: <SearchPage />,
         handle: { crumb: 'Search' },
       },
