@@ -90,9 +90,9 @@ export function RankedCandidateList({ roleId, rankedCandidates, onPreview, isPre
 
         {!isLoading && !isError && filteredCandidates.length > 0 && (
           <ItemGroup className="p-1 gap-1">
-            {filteredCandidates.map((candidate) => (
+            {filteredCandidates.map((candidate, index) => (
               <CandidateItem
-                key={candidate.name}
+                key={candidate.name + index}
                 name={candidate.name}
                 title={candidate.title}
                 company={candidate.company}

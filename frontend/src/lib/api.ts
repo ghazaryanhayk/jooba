@@ -17,6 +17,7 @@ export async function getRoles(): Promise<RolesResponse> {
 }
 
 export interface CandidateSchema {
+  id: string;
   name: string;
   title: string;
   company: string;
@@ -33,8 +34,13 @@ export interface SearchResponse {
   total_count: number;
 }
 
-export interface RunSearchResponse extends SearchResponse {
+export interface RunSearchResponse {
   search_id: string;
+  status: string;
+}
+
+export interface SearchStatusResponse {
+  status: string;
 }
 
 export async function searchCandidates(
@@ -112,6 +118,20 @@ export async function getRoleFilters(roleId: string): Promise<RoleFiltersRespons
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
     throw new Error(error.detail ?? `Failed to fetch role filters: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+export async function getSearchStatus(
+  roleId: string,
+  searchId: string,
+): Promise<SearchStatusResponse> {
+  const response = await fetch(`/api/roles/${roleId}/searches/${searchId}/status`);
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.detail ?? `Failed to fetch search status: ${response.status}`);
   }
 
   return response.json();

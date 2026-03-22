@@ -3,6 +3,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRunFullSearch } from '@/hooks/use-run-full-search';
 import { useSearch } from '@/hooks/use-search';
+import { useSearchStatus } from '@/hooks/use-search-status';
+import { useRoleCandidates } from '@/hooks/use-role-candidates';
 import { ItemGroup } from '../ui/item';
 import { CandidateItem } from '../common/candidate-item';
 import type { CandidateSchema } from '@/lib/api';
@@ -17,23 +19,40 @@ interface CandidateListProps {
 
 export function CandidateList({ roleId, filters, savedFilters, onApplyFilters }: CandidateListProps) {
   const { data: previewData, isLoading: isPreviewLoading, isError, error } = useSearch(filters);
-  const { mutate, isPending, isSuccess, data: fullData, error: fullError } = useRunFullSearch(roleId);
+  const { mutate, isPending, data: runData, error: runError } = useRunFullSearch(roleId);
 
-  const isFullSearchLoading = isPending;
-  const isLoading = isPreviewLoading || isFullSearchLoading;
+  const searchId = runData?.search_id ?? null;
+  const { data: statusData } = useSearchStatus(roleId, searchId);
+  const searchStatus = statusData?.status;
 
-  const displayData = isSuccess ? fullData : previewData;
+  const isSearchRunning = isPending || searchStatus === 'running';
+  const isSearchCompleted = searchStatus === 'completed';
+  const isSearchFailed = searchStatus === 'failed';
 
-  const candidates: CandidateSchema[] = displayData?.candidates ?? [];
-  const previewCount = displayData?.preview_count ?? 0;
-  const totalCount = displayData?.total_count ?? 0;
+  const { data: completedData, isLoading: isCompletedLoading } = useRoleCandidates(roleId, isSearchCompleted);
+
+  const isLoading = isPreviewLoading || isSearchRunning || isCompletedLoading;
+
+  const candidates: CandidateSchema[] = isSearchCompleted
+    ? (completedData?.candidates ?? [])
+    : (previewData?.candidates ?? []);
+  const previewCount = isSearchCompleted ? candidates.length : (previewData?.preview_count ?? 0);
+  const totalCount = isSearchCompleted ? candidates.length : (previewData?.total_count ?? 0);
+
+  const hasFullSearchResult = isSearchCompleted && !isCompletedLoading;
+  const hasError = isError || isSearchFailed;
+  const errorMessage = runError instanceof Error
+    ? runError.message
+    : error instanceof Error
+      ? error.message
+      : 'Search failed. Please try again.';
 
   return (
     <div className="">
       <div className="flex items-center justify-end gap-2 px-4 py-2 h-11 border-gray-200 shrink-0">
-        {displayData && (
+        {(previewData || hasFullSearchResult) && (
           <span className="text-xs text-muted-foreground">
-            {isSuccess ? (
+            {hasFullSearchResult ? (
               <>
                 Showing <span className="font-medium text-foreground">{previewCount}</span> out of{' '}
                 <span className="font-medium text-foreground">{totalCount.toLocaleString()}</span>
@@ -50,10 +69,10 @@ export function CandidateList({ roleId, filters, savedFilters, onApplyFilters }:
           size="sm"
           variant="default"
           type="button"
-          disabled={!filters || isPending || isSuccess}
+          disabled={!filters || isSearchRunning || isSearchCompleted}
           onClick={() => filters && mutate(filters)}
         >
-          {isPending ? 'Searching…' : 'Run full search'}
+          {isSearchRunning ? 'Searching…' : 'Run full search'}
         </Button>
       </div>
 
@@ -73,23 +92,17 @@ export function CandidateList({ roleId, filters, savedFilters, onApplyFilters }:
           </div>
         )}
 
-        {!isLoading && (isError || fullError) && (
+        {!isLoading && hasError && (
           <div className="flex items-center justify-center h-48 px-6 text-center">
-            <p className="text-sm text-destructive">
-              {fullError instanceof Error
-                ? fullError.message
-                : error instanceof Error
-                  ? error.message
-                  : 'Search failed. Please try again.'}
-            </p>
+            <p className="text-sm text-destructive">{errorMessage}</p>
           </div>
         )}
 
-        {!isLoading && !(isError || fullError) && candidates.length > 0 && (
+        {!isLoading && !hasError && candidates.length > 0 && (
           <ItemGroup className="p-1 gap-1">
-            {candidates.map((candidate) => (
+            {candidates.map((candidate, index) => (
               <CandidateItem
-                key={candidate.name}
+                key={candidate.name + index}
                 name={candidate.name}
                 title={candidate.title}
                 company={candidate.company}
@@ -103,7 +116,7 @@ export function CandidateList({ roleId, filters, savedFilters, onApplyFilters }:
           </ItemGroup>
         )}
 
-        {!isLoading && !(isError || fullError) && !displayData && (
+        {!isLoading && !hasError && candidates.length === 0 && !isSearchCompleted && (
           <div className="flex flex-col items-center justify-center gap-3 h-48 text-center">
             <p className="text-sm text-muted-foreground">Apply filters and search to see candidates.</p>
             <Button

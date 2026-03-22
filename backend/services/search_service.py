@@ -9,7 +9,7 @@ async def search(request: SearchRequest) -> SearchResponse:
     if cached is not None:
         return cached
 
-    candidates, total_count = await crustdata_client.search_candidates(
+    candidates, total_count, cursor = await crustdata_client.search_candidates(
         filters=request.filters,
         preview_only=request.preview_only,
     )

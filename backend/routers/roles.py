@@ -1,6 +1,5 @@
 import asyncio
 import logging
-from math import ceil
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy import select, update
@@ -13,15 +12,13 @@ from db.models.search import Search, SearchStatus
 from db.models.search_candidate import SearchCandidate
 from db.session import AsyncSessionLocal, get_db
 from schemas.candidate import CandidateSchema
-from schemas.role import RoleCandidatesResponse, RoleFiltersResponse, RoleSchema, RolesResponse, RunSearchRequest, RunSearchResponse
+from schemas.role import RoleCandidatesResponse, RoleFiltersResponse, RoleSchema, RolesResponse, RunSearchRequest, RunSearchResponse, SearchStatusResponse
 from schemas.search import SearchFilters
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/roles', tags=['roles'])
 
-PAGE_SIZE = 20
-MAX_CONCURRENCY = 10
-BATCH_SLEEP_SECONDS = 10
+RATE_LIMIT_SLEEP = 1.0
 
 
 @router.get('', response_model=RolesResponse)
@@ -86,49 +83,20 @@ async def _persist_candidates(
 async def _background_full_search(search_id: str, filters: SearchFilters) -> None:
     async with AsyncSessionLocal() as db:
         try:
-            candidates, total_count = await crustdata_client.search_candidates(
-                filters, preview_only=False, page=1,
-            )
-            print(f'Found {total_count} candidates')
-            await _persist_candidates(db, search_id, candidates)
-
-            total_pages = ceil(total_count / PAGE_SIZE)
-            print(f'Total pages: {total_pages}')
-            if total_pages <= 1:
-                await db.execute(
-                    update(Search).where(Search.id == search_id).values(status=SearchStatus.completed)
+            cursor: str | None = None
+            while True:
+                candidates, _total_count, next_cursor = await crustdata_client.search_candidates(
+                    filters, preview_only=False, cursor=cursor,
                 )
-                await db.commit()
-                return
+                if candidates:
+                    await _persist_candidates(db, search_id, candidates)
 
-            semaphore = asyncio.Semaphore(MAX_CONCURRENCY)
+                cursor = next_cursor
+                print(cursor)
+                if not cursor:
+                    break
 
-            async def _fetch_page(page: int) -> list[CandidateSchema]:
-                print(f'Fetching page {page}')
-                async with semaphore:
-                    result, _ = await crustdata_client.search_candidates(
-                        filters, preview_only=False, page=page,
-                    )
-                    print(f'Found {len(result)} candidates on page {page}')
-                    return result
-
-            remaining_pages = list(range(2, total_pages + 1))
-            print(f'Remaining pages: {remaining_pages}')
-            for batch_start in range(0, len(remaining_pages), MAX_CONCURRENCY):
-                batch = remaining_pages[batch_start:batch_start + MAX_CONCURRENCY]
-                results = await asyncio.gather(*[_fetch_page(p) for p in batch])
-
-                all_candidates: list[CandidateSchema] = []
-                for page_candidates in results:
-                    all_candidates.extend(page_candidates)
-
-                if all_candidates:
-                    await _persist_candidates(db, search_id, all_candidates)
-
-                if batch_start + MAX_CONCURRENCY < len(remaining_pages):
-                    await asyncio.sleep(BATCH_SLEEP_SECONDS)
-
-                print(f'Batch {batch_start} completed')
+                await asyncio.sleep(RATE_LIMIT_SLEEP)
 
             await db.execute(
                 update(Search).where(Search.id == search_id).values(status=SearchStatus.completed)
@@ -141,6 +109,21 @@ async def _background_full_search(search_id: str, filters: SearchFilters) -> Non
                 update(Search).where(Search.id == search_id).values(status=SearchStatus.failed)
             )
             await db.commit()
+
+
+@router.get('/{role_id}/searches/{search_id}/status', response_model=SearchStatusResponse)
+async def get_search_status(
+    role_id: str,
+    search_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> SearchStatusResponse:
+    result = await db.execute(
+        select(Search).where(Search.id == search_id, Search.role_id == role_id)
+    )
+    search = result.scalar_one_or_none()
+    if search is None:
+        raise HTTPException(status_code=404, detail='Search not found')
+    return SearchStatusResponse(status=search.status.value)
 
 
 @router.get('/{role_id}/filters', response_model=RoleFiltersResponse)

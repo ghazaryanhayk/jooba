@@ -22,6 +22,10 @@ class RunSearchResponse(BaseModel):
     status: str
 
 
+class SearchStatusResponse(BaseModel):
+    status: str
+
+
 class RoleCandidatesResponse(BaseModel):
     candidates: list[CandidateSchema]
     search_id: str
