@@ -20,7 +20,8 @@ class CandidateSchema(BaseModel):
     name: str
     title: str
     company: str
-    bio: str
+    headline: str
+    summary: str
     avatar_url: str | None = None
     tier: Tier | None = None
     status: ApprovalStatus | None = None

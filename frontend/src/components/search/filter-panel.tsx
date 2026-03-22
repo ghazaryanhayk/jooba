@@ -1,14 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { ChevronRightIcon } from 'lucide-react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { ScrollArea } from '../ui/scroll-area';
 import { CountryFilter } from './filters/country-filter';
 import { ExperienceRangeFilter } from './filters/experience-range-filter';
+import { FilterPanelHeader } from './filters/filter-panel-header';
 import { defaultFilterValues, filterSchema, type FilterFormValues } from './filters/schema';
 import { TitleFilter } from './filters/title-filter';
-import { FilterPanelHeader } from './filters/filter-panel-header';
-import { ChevronRightIcon } from 'lucide-react';
 
 const FILTERS: Record<string, { label: string, value: string, component?: React.ReactNode }[]> = {
   Person: [
@@ -40,7 +40,11 @@ const FILTERS: Record<string, { label: string, value: string, component?: React.
   ],
 }
 
-export function FilterPanel() {
+interface FilterPanelProps {
+  onSearch: (filters: FilterFormValues) => void;
+}
+
+export function FilterPanel({ onSearch }: FilterPanelProps) {
   const methods = useForm<FilterFormValues>({
     resolver: zodResolver(filterSchema),
     defaultValues: defaultFilterValues,
@@ -48,6 +52,7 @@ export function FilterPanel() {
 
   const onSubmit = (data: FilterFormValues) => {
     console.log('Filter values:', data);
+    onSearch(data);
   };
 
   return (

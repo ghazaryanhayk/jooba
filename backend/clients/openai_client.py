@@ -35,7 +35,7 @@ class OpenAIClient:
         )
 
         candidates_text = '\n'.join(
-            f'{i + 1}. Name: {c.name} | Title: {c.title} | Company: {c.company} | Bio: {c.bio}'
+            f'{i + 1}. Name: {c.name} | Title: {c.title} | Company: {c.company} | Headline: {c.headline} | Summary: {c.summary}'
             for i, c in enumerate(candidates)
         )
 

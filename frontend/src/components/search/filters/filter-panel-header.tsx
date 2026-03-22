@@ -29,6 +29,7 @@ export function FilterPanelHeader() {
           </Badge>
         )}
       </div>
+      <Button type="submit" variant="default" size="sm">Search</Button>
       {activeCount > 0 && (
         <Button type="button" variant="link" size="sm" onClick={() => reset(defaultFilterValues)}>
           Reset

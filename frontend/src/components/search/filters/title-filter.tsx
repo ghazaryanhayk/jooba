@@ -15,14 +15,14 @@ import {
 
 import type { FilterFormValues } from './schema';
 
-type Operator = 'is' | 'is_not' | 'fuzzy' | 'exacte';
+type Operator = 'is' | 'is_not' | 'fuzzy' | 'substring';
 type Timeframe = 'current' | 'ever' | 'past';
 
 const OPERATOR_LABELS: Record<Operator, string> = {
   is: 'Is',
   is_not: 'Is not',
   fuzzy: 'Fuzzy',
-  exacte: 'Exacte',
+  substring: 'Substring',
 };
 
 const TIMEFRAME_LABELS: Record<Timeframe, string> = {

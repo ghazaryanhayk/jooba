@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const titleRowSchema = z.object({
-  operator: z.enum(['is', 'is_not', 'fuzzy', 'exacte']),
+  operator: z.enum(['is', 'is_not', 'fuzzy', 'substring']),
   value: z.string(),
   timeframe: z.enum(['current', 'ever', 'past']),
 });

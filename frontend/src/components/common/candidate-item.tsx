@@ -17,7 +17,8 @@ export type CandidateProps = {
   name: string;
   title: string;
   company: string;
-  bio: string;
+  headline: string;
+  summary: string;
   avatarUrl?: string;
   tier?: Tier;
   status?: {
@@ -26,7 +27,7 @@ export type CandidateProps = {
   };
 }
 
-export function CandidateItem({ name, title, company, bio, avatarUrl, tier, status }: CandidateProps) {
+export function CandidateItem({ name, title, company, headline, summary, avatarUrl, tier, status }: CandidateProps) {
   const initials = name
     .split(' ')
     .map((n) => n[0])
@@ -58,8 +59,9 @@ export function CandidateItem({ name, title, company, bio, avatarUrl, tier, stat
         </ItemMedia>
         <ItemContent>
           <ItemTitle>{name}</ItemTitle>
-          <ItemDescription className="text-xs">{title}, {company}</ItemDescription>
-          <ItemDescription className="text-xs">{bio}</ItemDescription>
+          <ItemDescription className="text-xs">{[title, company].filter(Boolean).join(', ')}</ItemDescription>
+          <ItemDescription className="text-xs">{headline}</ItemDescription>
+          <ItemDescription className="text-xs line-clamp-1">{summary}</ItemDescription>
           {status && (
             <ItemDescription className={cn('text-xs', status.approved ? 'text-green-900' : 'text-red-900')}>
               {status.reason}

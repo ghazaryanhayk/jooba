@@ -6,6 +6,18 @@ from schemas.search import SearchFilters
 
 CRUSTDATA_BASE_URL = 'https://api.crustdata.com'
 
+_TITLE_OPERATOR_MAP = {
+    'is': '=',
+    'substring': '[.]',
+    'fuzzy': '(.)',
+    'is_not': '!=',
+}
+
+_COUNTRY_OPERATOR_MAP = {
+    'is': '=',
+    'is_not': '!=',
+}
+
 
 class CrustDataClient:
     def __init__(self) -> None:
@@ -21,7 +33,7 @@ class CrustDataClient:
         preview_only: bool = True,
     ) -> tuple[list[CandidateSchema], int]:
         payload = _build_search_payload(filters, preview_only)
-
+        print(payload)
         async with httpx.AsyncClient(base_url=CRUSTDATA_BASE_URL, timeout=30.0) as client:
             response = await client.post(
                 '/screener/persondb/search',
@@ -40,27 +52,59 @@ class CrustDataClient:
 def _build_search_payload(filters: SearchFilters, preview_only: bool) -> dict:
     conditions: list[dict] = []
 
-    if filters.title:
-        conditions.append({'column': 'current_employers.title', 'type': '(.)', 'value': filters.title})
-    if filters.country:
-        conditions.append({'column': 'location_details.country', 'type': '=', 'value': filters.country})
-    if filters.state:
-        conditions.append({'column': 'location_details.state', 'type': '=', 'value': filters.state})
-    if filters.city:
-        conditions.append({'column': 'location_details.city', 'type': '=', 'value': filters.city})
-    if filters.skills:
-        conditions.append({'column': 'skills', 'type': 'in', 'value': filters.skills})
-    if filters.keywords:
-        conditions.append({'column': 'headline', 'type': '(.)', 'value': ' '.join(filters.keywords)})
-    if filters.company_name:
-        conditions.append({'column': 'current_employers.name', 'type': '(.)', 'value': filters.company_name})
-    if filters.recently_changed_jobs is not None:
-        conditions.append({'column': 'recently_changed_jobs', 'type': '=', 'value': filters.recently_changed_jobs})
+    title_conditions = [
+        {
+            'filter_type': 'current_employers.title' if row.timeframe == 'current' else 'employers.title',
+            'type': _TITLE_OPERATOR_MAP[row.operator],
+            'value': row.value,
+        }
+        for row in filters.title
+        if row.value
+    ]
+    if len(title_conditions) == 1:
+        conditions.append(title_conditions[0])
+    elif len(title_conditions) > 1:
+        conditions.append({'op': 'or', 'conditions': title_conditions})
+
+    country_conditions = [
+        {
+            'filter_type': 'location_details.country',
+            'type': _COUNTRY_OPERATOR_MAP[row.operator],
+            'value': row.value,
+        }
+        for row in filters.country
+        if row.value
+    ]
+    if len(country_conditions) == 1:
+        conditions.append(country_conditions[0])
+    elif len(country_conditions) > 1:
+        conditions.append({'op': 'or', 'conditions': country_conditions})
+
+    if filters.experience:
+        exp = filters.experience
+        if exp.from_:
+            try:
+                conditions.append({
+                    'filter_type': 'years_of_experience_raw',
+                    'type': '=>',
+                    'value': int(exp.from_),
+                })
+            except ValueError:
+                pass
+        if exp.to:
+            try:
+                conditions.append({
+                    'filter_type': 'years_of_experience_raw',
+                    'type': '=<',
+                    'value': int(exp.to),
+                })
+            except ValueError:
+                pass
 
     return {
         'filters': {'op': 'and', 'conditions': conditions},
         'page': 1,
-        'preview': True,
+        'preview': 'true' if preview_only else 'false',
     }
 
 
@@ -70,8 +114,9 @@ def _map_candidate(profile: dict) -> CandidateSchema:
         name=profile.get('name', ''),
         title=employer.get('title', ''),
         company=employer.get('name', ''),
-        bio=profile.get('headline') or profile.get('region', ''),
-        avatar_url=profile.get('profile_picture_url'),
+        headline=profile.get('headline', ''),
+        summary=profile.get('summary', ''),
+        avatar_url=profile.get('profile_picture_permalink'),
     )
 
 
