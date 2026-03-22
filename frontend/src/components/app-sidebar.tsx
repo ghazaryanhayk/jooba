@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Link } from 'react-router-dom';
 
 import { NavMain } from '@/components/nav-main';
+import { NavRoles } from '@/components/nav-roles';
 import {
   Sidebar,
   SidebarContent,
@@ -12,7 +13,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { BarChartIcon, LayoutDashboardIcon, SearchIcon, TerminalIcon } from 'lucide-react';
+import { LayoutDashboardIcon, TerminalIcon } from 'lucide-react';
 
 import { SearchForm } from './search-form';
 
@@ -23,16 +24,6 @@ const data = {
       url: '/',
       icon: <LayoutDashboardIcon />,
     },
-    {
-      title: 'Search',
-      url: '/search',
-      icon: <SearchIcon />,
-    },
-    {
-      title: 'Ranking',
-      url: '/ranking',
-      icon: <BarChartIcon />,
-    }
   ],
 };
 
@@ -59,6 +50,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
+        <NavRoles />
       </SidebarContent>
     </Sidebar>
   );

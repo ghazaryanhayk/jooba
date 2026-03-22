@@ -4,6 +4,15 @@ from schemas.candidate import CandidateSchema
 from schemas.search import SearchFilters, SearchResponse
 
 
+class RoleSchema(BaseModel):
+    id: str
+    name: str
+
+
+class RolesResponse(BaseModel):
+    roles: list[RoleSchema]
+
+
 class RunSearchRequest(BaseModel):
     filters: SearchFilters
 

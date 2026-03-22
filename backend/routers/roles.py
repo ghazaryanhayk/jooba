@@ -9,11 +9,17 @@ from db.models.search import Search, SearchStatus
 from db.models.search_candidate import SearchCandidate
 from db.session import get_db
 from schemas.candidate import CandidateSchema
-from schemas.role import RoleCandidatesResponse, RunSearchRequest, RunSearchResponse
+from schemas.role import RoleCandidatesResponse, RoleSchema, RolesResponse, RunSearchRequest, RunSearchResponse
 
 router = APIRouter(prefix='/roles', tags=['roles'])
 
 MAX_CANDIDATES = 20
+
+
+@router.get('', response_model=RolesResponse)
+async def list_roles(db: AsyncSession = Depends(get_db)) -> RolesResponse:
+    result = await db.execute(select(Role))
+    return RolesResponse(roles=[RoleSchema(id=r.id, name=r.name) for r in result.scalars()])
 
 
 @router.post('/{role_id}/searches/run', response_model=RunSearchResponse)

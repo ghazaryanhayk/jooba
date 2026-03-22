@@ -1,6 +1,21 @@
 import type { FilterFormValues } from '@/components/search/filters/schema';
 import type { CriteriaFormValues } from '@/components/ranking/criteria-schema';
 
+export interface RoleSchema {
+  id: string;
+  name: string;
+}
+
+export interface RolesResponse {
+  roles: RoleSchema[];
+}
+
+export async function getRoles(): Promise<RolesResponse> {
+  const res = await fetch('/api/roles');
+  if (!res.ok) throw new Error('Failed to fetch roles');
+  return res.json();
+}
+
 export interface CandidateSchema {
   name: string;
   title: string;

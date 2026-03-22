@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { defaultFilterValues, type FilterFormValues } from "./schema";
 import { useFormContext } from "react-hook-form";
+import { SearchIcon } from "lucide-react";
 
 function useFilterCounts() {
   const { formState } = useFormContext<FilterFormValues>();
@@ -34,7 +35,9 @@ export function FilterPanelHeader() {
           <Button type="button" variant="link" size="sm" onClick={() => reset(defaultFilterValues)}>
             Reset
           </Button>
-          <Button type="submit" variant="default" size="sm">Search</Button>
+          <Button type="submit" variant="outline" size="sm">
+            <SearchIcon className="size-3.5" /> Search
+          </Button>
         </>
       )}
     </div>
