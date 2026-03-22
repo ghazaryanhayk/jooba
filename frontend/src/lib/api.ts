@@ -22,7 +22,7 @@ export async function searchCandidates(
   previewOnly = true,
 ): Promise<SearchResponse> {
   const response = await fetch('/api/search', {
-    method: 'POST',
+    method: 'POST', 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ filters, preview_only: previewOnly }),
   });

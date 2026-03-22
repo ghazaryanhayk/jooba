@@ -1,12 +1,12 @@
 from sqlalchemy import TIMESTAMP, Text, func
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from db.base import Base
 
 
-class Role(Base):
-    __tablename__ = 'role'
+class Candidate(Base):
+    __tablename__ = 'candidate'
 
     id: Mapped[str] = mapped_column(
         UUID(as_uuid=False),
@@ -14,7 +14,11 @@ class Role(Base):
         server_default='gen_random_uuid()',
     )
     name: Mapped[str] = mapped_column(Text, nullable=False)
-    filters: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    title: Mapped[str] = mapped_column(Text, nullable=False)
+    company: Mapped[str] = mapped_column(Text, nullable=False)
+    headline: Mapped[str] = mapped_column(Text, nullable=False)
+    summary: Mapped[str] = mapped_column(Text, nullable=False)
+    avatar_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[str] = mapped_column(
         TIMESTAMP(timezone=True),
         nullable=False,

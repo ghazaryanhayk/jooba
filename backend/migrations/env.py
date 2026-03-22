@@ -12,7 +12,10 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 from db.base import Base
-import db.models.role  # noqa: F401 — ensure model is registered
+import db.models.role  # noqa: F401
+import db.models.candidate  # noqa: F401
+import db.models.search  # noqa: F401
+import db.models.search_candidate  # noqa: F401
 
 target_metadata = Base.metadata
 
