@@ -15,24 +15,24 @@ interface RankedCandidateListProps {
   isPreviewing: boolean;
 }
 
-const STATS = [
-  { label: 'Approved', value: 43, color: 'bg-green-700' },
-  { label: 'Rejected', value: 47, color: 'bg-red-700' },
-];
-
-const TIERS = [
-  { label: 'A tier', value: 14, color: 'bg-green-700' },
-  { label: 'B tier', value: 9, color: 'bg-blue-700' },
-  { label: 'C tier', value: 2, color: 'bg-yellow-700' },
-  { label: 'D tier', value: 50, color: 'bg-orange-700' },
-  { label: 'F tier', value: 75, color: 'bg-red-700' },
-];
+const TIER_ORDER = { A: 0, B: 1, C: 2, D: 3, F: 4 } as const;
 
 export function RankedCandidateList({ roleId, rankedCandidates, onPreview, isPreviewing }: RankedCandidateListProps) {
   const { data, isLoading, isError, error } = useRoleCandidates(roleId);
 
   const sourceCandidates = data?.candidates ?? [];
   const candidates = rankedCandidates ?? sourceCandidates;
+
+  const sortedCandidates = [...candidates].sort((a, b) => {
+    const aRank = a.tier != null ? TIER_ORDER[a.tier] : 99;
+    const bRank = b.tier != null ? TIER_ORDER[b.tier] : 99;
+    return aRank - bRank;
+  });
+
+  const approved = candidates.filter((c) => c.status?.approved === true).length;
+  const rejected = candidates.length - approved;
+  const tierCounts = { A: 0, B: 0, C: 0, D: 0, F: 0 };
+  candidates.forEach((c) => { if (c.tier) tierCounts[c.tier]++; });
 
   return (
     <div className="">
@@ -55,26 +55,37 @@ export function RankedCandidateList({ roleId, rankedCandidates, onPreview, isPre
         <Button size="sm" variant="default" disabled>Publish</Button>
       </div>
 
-      <div className="flex items-center justify-between gap-4 px-4 py-2 border-t border-gray-200 shrink-0 h-10">
-        <div className="flex items-center gap-5">
-          {STATS.map((stat) => (
-            <div key={stat.label} className="text-xs flex items-center gap-2">
-              <span className={`${stat.color} inline-block rounded-full size-2`} />
-              <span className="font-medium text-muted-foreground">{stat.label}</span>{' '}
-              <span className="font-semibold">{stat.value}</span>
-            </div>
-          ))}
+      {rankedCandidates !== null && (
+        <div className="flex items-center justify-between gap-4 px-4 py-2 border-t border-gray-200 shrink-0 h-10">
+          <div className="flex items-center gap-5">
+            {([
+              { label: 'Approved', value: approved, color: 'bg-green-700' },
+              { label: 'Rejected', value: rejected, color: 'bg-red-700' },
+            ] as const).map((stat) => (
+              <div key={stat.label} className="text-xs flex items-center gap-2">
+                <span className={`${stat.color} inline-block rounded-full size-2`} />
+                <span className="font-medium text-muted-foreground">{stat.label}</span>{' '}
+                <span className="font-semibold">{stat.value}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center gap-5">
+            {([
+              { label: 'A tier', value: tierCounts.A, color: 'bg-green-700' },
+              { label: 'B tier', value: tierCounts.B, color: 'bg-blue-700' },
+              { label: 'C tier', value: tierCounts.C, color: 'bg-yellow-700' },
+              { label: 'D tier', value: tierCounts.D, color: 'bg-orange-700' },
+              { label: 'F tier', value: tierCounts.F, color: 'bg-red-700' },
+            ] as const).map((tier) => (
+              <div key={tier.label} className="text-xs flex items-center gap-2">
+                <span className={`${tier.color} inline-block rounded-full size-2`} />
+                <span className="font-medium text-muted-foreground">{tier.label}</span>{' '}
+                <span className="font-semibold">{tier.value}</span>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="flex items-center gap-5">
-          {TIERS.map((tier) => (
-            <div key={tier.label} className="text-xs flex items-center gap-2">
-              <span className={`${tier.color} inline-block rounded-full size-2`} />
-              <span className="font-medium text-muted-foreground">{tier.label}</span>{' '}
-              <span className="font-semibold">{tier.value}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      )}
 
       <ScrollArea className="flex-1 border-t border-gray-200 h-[calc(100vh-145px)]">
         {isLoading && (
@@ -102,7 +113,7 @@ export function RankedCandidateList({ roleId, rankedCandidates, onPreview, isPre
 
         {!isLoading && !isError && candidates.length > 0 && (
           <ItemGroup className="p-1 gap-1">
-            {candidates.map((candidate) => (
+            {sortedCandidates.map((candidate) => (
               <CandidateItem
                 key={candidate.name}
                 name={candidate.name}
