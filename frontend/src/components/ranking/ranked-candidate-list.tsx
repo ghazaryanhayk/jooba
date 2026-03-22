@@ -1,14 +1,13 @@
 import { useState } from 'react';
-import { Loader2Icon } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
 import { ItemGroup } from '@/components/ui/item';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRoleCandidates } from '@/hooks/use-role-candidates';
 import type { CandidateSchema } from '@/lib/api';
 import { CandidateItem } from '../common/candidate-item';
+import { RankedListToolbar, type DecisionFilter, type TierFilter } from './ranked-list-toolbar';
+import { RankingStatsBar } from './ranking-stats-bar';
 
 interface RankedCandidateListProps {
   roleId: string;
@@ -21,8 +20,8 @@ const TIER_ORDER = { A: 0, B: 1, C: 2, D: 3, F: 4 } as const;
 
 export function RankedCandidateList({ roleId, rankedCandidates, onPreview, isPreviewing }: RankedCandidateListProps) {
   const { data, isLoading, isError, error } = useRoleCandidates(roleId);
-  const [tierFilter, setTierFilter] = useState<'all' | 'A' | 'B' | 'C' | 'D' | 'F'>('all');
-  const [decisionFilter, setDecisionFilter] = useState<'all' | 'approved' | 'rejected'>('all');
+  const [tierFilter, setTierFilter] = useState<TierFilter>('all');
+  const [decisionFilter, setDecisionFilter] = useState<DecisionFilter>('all');
 
   const sourceCandidates = data?.candidates ?? [];
   const candidates = rankedCandidates ?? sourceCandidates;
@@ -48,83 +47,21 @@ export function RankedCandidateList({ roleId, rankedCandidates, onPreview, isPre
 
   return (
     <div className="">
-      <div className="flex items-center justify-between gap-2 px-4 py-2 h-11 shrink-0">
-        <div className="flex items-center gap-2">
-          <Select value={tierFilter} onValueChange={(v) => setTierFilter(v as typeof tierFilter)}>
-            <SelectTrigger size="sm" className="w-auto gap-1.5">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All tiers</SelectItem>
-              <SelectItem value="A">A tier</SelectItem>
-              <SelectItem value="B">B tier</SelectItem>
-              <SelectItem value="C">C tier</SelectItem>
-              <SelectItem value="D">D tier</SelectItem>
-              <SelectItem value="F">F tier</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={decisionFilter} onValueChange={(v) => setDecisionFilter(v as typeof decisionFilter)}>
-            <SelectTrigger size="sm" className="w-auto gap-1.5">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All decisions</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {data && (
-            <span className="text-xs text-muted-foreground">
-              Showing <span className="font-medium text-foreground">{filteredCandidates.length}</span> candidates
-            </span>
-          )}
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={isPreviewing || isLoading || sourceCandidates.length === 0}
-            onClick={() => onPreview(sourceCandidates)}
-          >
-            {isPreviewing && <Loader2Icon className="animate-spin" />}
-            Preview
-          </Button>
-          <Button size="sm" variant="outline" disabled>Run full ranking</Button>
-          <Button size="sm" variant="default" disabled>Publish</Button>
-        </div>
-      </div>
+      <RankedListToolbar
+        tierFilter={tierFilter}
+        decisionFilter={decisionFilter}
+        onTierChange={setTierFilter}
+        onDecisionChange={setDecisionFilter}
+        filteredCount={filteredCandidates.length}
+        showCount={!!data}
+        isPreviewing={isPreviewing}
+        isLoading={isLoading}
+        canPreview={sourceCandidates.length > 0}
+        onPreview={() => onPreview(sourceCandidates)}
+      />
 
       {rankedCandidates !== null && (
-        <div className="flex items-center justify-between gap-4 px-4 py-2 border-t border-gray-200 shrink-0 h-10">
-          <div className="flex items-center gap-5">
-            {([
-              { label: 'Approved', value: approved, color: 'bg-green-700' },
-              { label: 'Rejected', value: rejected, color: 'bg-red-700' },
-            ] as const).map((stat) => (
-              <div key={stat.label} className="text-xs flex items-center gap-2">
-                <span className={`${stat.color} inline-block rounded-full size-2`} />
-                <span className="font-medium text-muted-foreground">{stat.label}</span>{' '}
-                <span className="font-semibold">{stat.value}</span>
-              </div>
-            ))}
-          </div>
-          <div className="flex items-center gap-5">
-            {([
-              { label: 'A tier', value: tierCounts.A, color: 'bg-green-700' },
-              { label: 'B tier', value: tierCounts.B, color: 'bg-blue-700' },
-              { label: 'C tier', value: tierCounts.C, color: 'bg-yellow-700' },
-              { label: 'D tier', value: tierCounts.D, color: 'bg-orange-700' },
-              { label: 'F tier', value: tierCounts.F, color: 'bg-red-700' },
-            ] as const).map((tier) => (
-              <div key={tier.label} className="text-xs flex items-center gap-2">
-                <span className={`${tier.color} inline-block rounded-full size-2`} />
-                <span className="font-medium text-muted-foreground">{tier.label}</span>{' '}
-                <span className="font-semibold">{tier.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        <RankingStatsBar approved={approved} rejected={rejected} tierCounts={tierCounts} />
       )}
 
       <ScrollArea className="flex-1 border-t border-gray-200 h-[calc(100vh-145px)]">
