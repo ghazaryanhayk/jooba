@@ -1,9 +1,22 @@
+import { FormProvider, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+import { criteriaSchema, defaultCriteriaValues, type CriteriaFormValues } from './criteria-schema';
+import { CriteriaPanelHeader } from './criteria/criteria-panel-header';
+import { CriteriaPanelBody } from './criteria/criteria-panel-body';
+
 export function CriteriaPanel() {
+  const methods = useForm<CriteriaFormValues>({
+    resolver: zodResolver(criteriaSchema),
+    defaultValues: defaultCriteriaValues,
+  });
+
   return (
-    <div className="shrink-0 border-r h-full overflow-y-auto">
-      <div className="pl-4 pr-1.5 py-2 h-11 flex items-center border-b border-gray-200">
-        <h2 className="font-medium text-gray-900">Criteria</h2>
-      </div>
-    </div>
+    <FormProvider {...methods}>
+      <form className="shrink-0 border-r">
+        <CriteriaPanelHeader />
+        <CriteriaPanelBody />
+      </form>
+    </FormProvider>
   );
 }

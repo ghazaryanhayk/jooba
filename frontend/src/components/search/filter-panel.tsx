@@ -51,7 +51,6 @@ export function FilterPanel({ onSearch }: FilterPanelProps) {
   });
 
   const onSubmit = (data: FilterFormValues) => {
-    console.log('Filter values:', data);
     onSearch(data);
   };
 
