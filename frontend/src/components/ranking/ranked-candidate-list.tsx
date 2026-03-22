@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { Loader2Icon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { ItemGroup } from '@/components/ui/item';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRoleCandidates } from '@/hooks/use-role-candidates';
 import type { CandidateSchema } from '@/lib/api';
@@ -19,6 +21,8 @@ const TIER_ORDER = { A: 0, B: 1, C: 2, D: 3, F: 4 } as const;
 
 export function RankedCandidateList({ roleId, rankedCandidates, onPreview, isPreviewing }: RankedCandidateListProps) {
   const { data, isLoading, isError, error } = useRoleCandidates(roleId);
+  const [tierFilter, setTierFilter] = useState<'all' | 'A' | 'B' | 'C' | 'D' | 'F'>('all');
+  const [decisionFilter, setDecisionFilter] = useState<'all' | 'approved' | 'rejected'>('all');
 
   const sourceCandidates = data?.candidates ?? [];
   const candidates = rankedCandidates ?? sourceCandidates;
@@ -29,6 +33,14 @@ export function RankedCandidateList({ roleId, rankedCandidates, onPreview, isPre
     return aRank - bRank;
   });
 
+  const filteredCandidates = sortedCandidates
+    .filter((c) => tierFilter === 'all' || c.tier === tierFilter)
+    .filter((c) => {
+      if (decisionFilter === 'approved') return c.status?.approved === true;
+      if (decisionFilter === 'rejected') return c.status?.approved === false;
+      return true;
+    });
+
   const approved = candidates.filter((c) => c.status?.approved === true).length;
   const rejected = candidates.length - approved;
   const tierCounts = { A: 0, B: 0, C: 0, D: 0, F: 0 };
@@ -36,23 +48,51 @@ export function RankedCandidateList({ roleId, rankedCandidates, onPreview, isPre
 
   return (
     <div className="">
-      <div className="flex items-center justify-end gap-2 px-4 py-2 h-11 shrink-0">
-        {data && (
-          <span className="text-xs text-muted-foreground">
-            Showing <span className="font-medium text-foreground">{candidates.length}</span> candidates
-          </span>
-        )}
-        <Button
-          size="sm"
-          variant="outline"
-          disabled={isPreviewing || isLoading || sourceCandidates.length === 0}
-          onClick={() => onPreview(sourceCandidates)}
-        >
-          {isPreviewing && <Loader2Icon className="animate-spin" />}
-          Preview
-        </Button>
-        <Button size="sm" variant="outline" disabled>Run full ranking</Button>
-        <Button size="sm" variant="default" disabled>Publish</Button>
+      <div className="flex items-center justify-between gap-2 px-4 py-2 h-11 shrink-0">
+        <div className="flex items-center gap-2">
+          <Select value={tierFilter} onValueChange={(v) => setTierFilter(v as typeof tierFilter)}>
+            <SelectTrigger size="sm" className="w-auto gap-1.5">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All tiers</SelectItem>
+              <SelectItem value="A">A tier</SelectItem>
+              <SelectItem value="B">B tier</SelectItem>
+              <SelectItem value="C">C tier</SelectItem>
+              <SelectItem value="D">D tier</SelectItem>
+              <SelectItem value="F">F tier</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={decisionFilter} onValueChange={(v) => setDecisionFilter(v as typeof decisionFilter)}>
+            <SelectTrigger size="sm" className="w-auto gap-1.5">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All decisions</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {data && (
+            <span className="text-xs text-muted-foreground">
+              Showing <span className="font-medium text-foreground">{filteredCandidates.length}</span> candidates
+            </span>
+          )}
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={isPreviewing || isLoading || sourceCandidates.length === 0}
+            onClick={() => onPreview(sourceCandidates)}
+          >
+            {isPreviewing && <Loader2Icon className="animate-spin" />}
+            Preview
+          </Button>
+          <Button size="sm" variant="outline" disabled>Run full ranking</Button>
+          <Button size="sm" variant="default" disabled>Publish</Button>
+        </div>
       </div>
 
       {rankedCandidates !== null && (
@@ -111,9 +151,9 @@ export function RankedCandidateList({ roleId, rankedCandidates, onPreview, isPre
           </div>
         )}
 
-        {!isLoading && !isError && candidates.length > 0 && (
+        {!isLoading && !isError && filteredCandidates.length > 0 && (
           <ItemGroup className="p-1 gap-1">
-            {sortedCandidates.map((candidate) => (
+            {filteredCandidates.map((candidate) => (
               <CandidateItem
                 key={candidate.name}
                 name={candidate.name}
@@ -129,9 +169,11 @@ export function RankedCandidateList({ roleId, rankedCandidates, onPreview, isPre
           </ItemGroup>
         )}
 
-        {!isLoading && !isError && candidates.length === 0 && !isLoading && (
+        {!isLoading && !isError && filteredCandidates.length === 0 && (
           <div className="flex items-center justify-center h-48">
-            <p className="text-sm text-muted-foreground">No candidates found. Run a full search first.</p>
+            <p className="text-sm text-muted-foreground">
+              {candidates.length === 0 ? 'No candidates found. Run a full search first.' : 'No candidates match the selected filters.'}
+            </p>
           </div>
         )}
       </ScrollArea>
