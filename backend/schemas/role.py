@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 from schemas.candidate import CandidateSchema
-from schemas.search import SearchFilters, SearchResponse
+from schemas.search import SearchFilters
 
 
 class RoleSchema(BaseModel):
@@ -17,8 +17,9 @@ class RunSearchRequest(BaseModel):
     filters: SearchFilters
 
 
-class RunSearchResponse(SearchResponse):
+class RunSearchResponse(BaseModel):
     search_id: str
+    status: str
 
 
 class RoleCandidatesResponse(BaseModel):

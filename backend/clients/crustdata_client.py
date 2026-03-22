@@ -31,8 +31,9 @@ class CrustDataClient:
         self,
         filters: SearchFilters,
         preview_only: bool = True,
+        page: int = 1,
     ) -> tuple[list[CandidateSchema], int]:
-        payload = _build_search_payload(filters, preview_only)
+        payload = _build_search_payload(filters, preview_only, page)
         async with httpx.AsyncClient(base_url=CRUSTDATA_BASE_URL, timeout=30.0) as client:
             response = await client.post(
                 '/screener/persondb/search',
@@ -48,7 +49,7 @@ class CrustDataClient:
         return candidates, total_count
 
 
-def _build_search_payload(filters: SearchFilters, preview_only: bool) -> dict:
+def _build_search_payload(filters: SearchFilters, preview_only: bool, page: int = 1) -> dict:
     conditions: list[dict] = []
 
     title_conditions = [
@@ -102,7 +103,7 @@ def _build_search_payload(filters: SearchFilters, preview_only: bool) -> dict:
 
     return {
         'filters': {'op': 'and', 'conditions': conditions},
-        'page': 1,
+        'page': page,
         'preview': 'true' if preview_only else 'false',
     }
 
