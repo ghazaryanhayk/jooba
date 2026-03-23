@@ -77,38 +77,6 @@ The frontend calls the API through a **Vite proxy**: browser requests to `/api/*
 | `CACHE_TTL_SECONDS` | `600` | In-memory cache TTL in seconds |
 | `CACHE_MAX_SIZE` | `500` | Maximum number of cached entries |
 
-## Status
-
-### Completed
-
-**Infrastructure**
-- Dockerized full-stack environment (API, web, PostgreSQL) with a single `docker compose up --build`
-- Alembic migrations and automatic DB seeding on first run
-
-**Roles**
-- Create a new role manually via a dialog
-- List roles in the sidebar with breadcrumb navigation per role
-
-**Candidate Search**
-- Search candidates via the CrustData API with configurable filters
-- Stop and resume a running search mid-flight
-- Virtualized candidate list for performance
-- Three filters implemented as representative examples: **Job Title**, **Country**, and **Years of Experience** — the architecture supports adding more without structural changes
-
-**Ranking**
-- Define ranking criteria through a criteria panel
-- Preview-mode ranking: candidates are scored and ranked based on the criteria using OpenAI
-
-### Not Completed / Out of Scope
-
-- **Filter tabs** (Active / All filters view) — UI scaffolded, logic not wired
-- **Candidate count preview** in the filter panel
-- **Candidate annotations** and **Like / Dislike** actions
-- **Full ranking run** — only preview-mode ranking is implemented; running ranking across all search results was explicitly skipped
-- **Additional filters** — only 3 filters were built as examples; expanding the set is straightforward but was not the focus
-
----
-
 ## Secrets
 
 Do not commit real API keys. Use `.env` and `backend/.env` (both gitignored) and document variables in the corresponding `.env.example` files.
