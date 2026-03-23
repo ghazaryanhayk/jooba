@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,6 +10,7 @@ import { useRoleCandidates } from '@/hooks/use-role-candidates';
 import { ItemGroup } from '../ui/item';
 import { CandidateItem } from '../common/candidate-item';
 import type { CandidateSchema } from '@/lib/api';
+import { useSearchStatusContext } from '@/contexts/search-status-context';
 import { suggestedFilters, type FilterFormValues } from './filters/schema';
 
 const PREVIEW_LIMIT_OPTIONS = [25, 50, 100, 200, 500];
@@ -48,6 +49,22 @@ export function CandidateList({ roleId, filters, savedFilters, onApplyFilters }:
 
   const hasFullSearchResult = isSearchCompleted && !isCompletedLoading;
   const hasError = isError || isSearchFailed;
+
+  const { setSearchStatus } = useSearchStatusContext();
+
+  useEffect(() => {
+    if (isSearchRunning) {
+      setSearchStatus('Running');
+    } else if (isSearchCompleted) {
+      setSearchStatus('Completed');
+    } else if (isSearchFailed) {
+      setSearchStatus('Failed');
+    } else {
+      setSearchStatus('Draft');
+    }
+
+    return () => setSearchStatus(null);
+  }, [isSearchRunning, isSearchCompleted, isSearchFailed, setSearchStatus]);
   const errorMessage = runError instanceof Error
     ? runError.message
     : error instanceof Error
