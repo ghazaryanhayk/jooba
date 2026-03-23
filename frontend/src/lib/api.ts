@@ -46,11 +46,12 @@ export interface SearchStatusResponse {
 export async function searchCandidates(
   filters: FilterFormValues,
   previewOnly = true,
+  previewLimit = 25,
 ): Promise<SearchResponse> {
   const response = await fetch('/api/search', {
     method: 'POST', 
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ filters, preview_only: previewOnly }),
+    body: JSON.stringify({ filters, preview_only: previewOnly, preview_limit: previewLimit }),
   });
 
   if (!response.ok) {

@@ -11,12 +11,14 @@ interface RankedListToolbarProps {
   decisionFilter: DecisionFilter;
   onTierChange: (v: TierFilter) => void;
   onDecisionChange: (v: DecisionFilter) => void;
-  filteredCount: number;
-  showCount: boolean;
   isPreviewing: boolean;
   isLoading: boolean;
   canPreview: boolean;
   onPreview: () => void;
+  previewLimit: number;
+  onPreviewLimitChange: (v: number) => void;
+  totalCount: number;
+  previewLimitOptions: number[];
 }
 
 export function RankedListToolbar({
@@ -24,12 +26,14 @@ export function RankedListToolbar({
   decisionFilter,
   onTierChange,
   onDecisionChange,
-  filteredCount,
-  showCount,
   isPreviewing,
   isLoading,
   canPreview,
   onPreview,
+  previewLimit,
+  onPreviewLimitChange,
+  totalCount,
+  previewLimitOptions,
 }: RankedListToolbarProps) {
   return (
     <div className="flex items-center justify-between gap-2 px-4 py-2 h-11 shrink-0">
@@ -61,9 +65,20 @@ export function RankedListToolbar({
       </div>
 
       <div className="flex items-center gap-2">
-        {showCount && (
-          <span className="text-xs text-muted-foreground">
-            Showing <span className="font-medium text-foreground">{filteredCount}</span> candidates
+        {totalCount > 0 && (
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            Previewing
+            <Select value={String(previewLimit)} onValueChange={(v) => onPreviewLimitChange(Number(v))}>
+              <SelectTrigger size="sm" className="w-auto">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {previewLimitOptions.map((opt) => (
+                  <SelectItem key={opt} value={String(opt)} className="text-xs">{opt}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            out of <span className="font-medium text-foreground">{totalCount}</span>
           </span>
         )}
         <Button

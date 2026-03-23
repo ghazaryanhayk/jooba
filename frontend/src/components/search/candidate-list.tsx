@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useRunFullSearch } from '@/hooks/use-run-full-search';
 import { useSearch } from '@/hooks/use-search';
 import { useSearchStatus } from '@/hooks/use-search-status';
@@ -10,6 +12,8 @@ import { CandidateItem } from '../common/candidate-item';
 import type { CandidateSchema } from '@/lib/api';
 import { suggestedFilters, type FilterFormValues } from './filters/schema';
 
+const PREVIEW_LIMIT_OPTIONS = [25, 50, 100, 200, 500];
+
 interface CandidateListProps {
   roleId: string;
   filters: FilterFormValues | null;
@@ -18,7 +22,8 @@ interface CandidateListProps {
 }
 
 export function CandidateList({ roleId, filters, savedFilters, onApplyFilters }: CandidateListProps) {
-  const { data: previewData, isLoading: isPreviewLoading, isError, error } = useSearch(filters);
+  const [previewLimit, setPreviewLimit] = useState(PREVIEW_LIMIT_OPTIONS[0]);
+  const { data: previewData, isLoading: isPreviewLoading, isError, error } = useSearch(filters, previewLimit);
   const { mutate, isPending, data: runData, error: runError } = useRunFullSearch(roleId);
 
   const searchId = runData?.search_id ?? null;
@@ -68,7 +73,7 @@ export function CandidateList({ roleId, filters, savedFilters, onApplyFilters }:
         ) : (
           <>
             {(previewData || hasFullSearchResult) && (
-              <span className="text-xs text-muted-foreground">
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
                 {hasFullSearchResult ? (
                   <>
                     Showing <span className="font-medium text-foreground">{previewCount}</span> out of{' '}
@@ -76,7 +81,23 @@ export function CandidateList({ roleId, filters, savedFilters, onApplyFilters }:
                   </>
                 ) : (
                   <>
-                    Previewing <span className="font-medium text-foreground">{previewCount}</span> out of{' '}
+                    Previewing
+                    <Select
+                      value={String(previewLimit)}
+                      onValueChange={(v) => setPreviewLimit(Number(v))}
+                    >
+                      <SelectTrigger size="sm" className="w-auto">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PREVIEW_LIMIT_OPTIONS.map((opt) => (
+                          <SelectItem key={opt} value={String(opt)} className="text-xs">
+                            {opt}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    out of{' '}
                     <span className="font-medium text-foreground">{totalCount.toLocaleString()}</span>
                   </>
                 )}

@@ -32,6 +32,7 @@ class SearchFilters(BaseModel):
 class SearchRequest(BaseModel):
     filters: SearchFilters
     preview_only: bool = True
+    preview_limit: int = 25
 
 
 class SearchResponse(BaseModel):

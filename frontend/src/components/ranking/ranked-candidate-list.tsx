@@ -9,6 +9,8 @@ import { CandidateItem } from '../common/candidate-item';
 import { RankedListToolbar, type DecisionFilter, type TierFilter } from './ranked-list-toolbar';
 import { RankingStatsBar } from './ranking-stats-bar';
 
+const RANKING_PREVIEW_LIMIT_OPTIONS = [25, 50, 100, 200, 500];
+
 interface RankedCandidateListProps {
   roleId: string;
   rankedCandidates: CandidateSchema[] | null;
@@ -22,6 +24,7 @@ export function RankedCandidateList({ roleId, rankedCandidates, onPreview, isPre
   const { data, isLoading, isError, error } = useRoleCandidates(roleId);
   const [tierFilter, setTierFilter] = useState<TierFilter>('all');
   const [decisionFilter, setDecisionFilter] = useState<DecisionFilter>('all');
+  const [previewLimit, setPreviewLimit] = useState(RANKING_PREVIEW_LIMIT_OPTIONS[0]);
 
   const sourceCandidates = data?.candidates ?? [];
   const candidates = rankedCandidates ?? sourceCandidates;
@@ -52,12 +55,14 @@ export function RankedCandidateList({ roleId, rankedCandidates, onPreview, isPre
         decisionFilter={decisionFilter}
         onTierChange={setTierFilter}
         onDecisionChange={setDecisionFilter}
-        filteredCount={filteredCandidates.length}
-        showCount={!!data}
         isPreviewing={isPreviewing}
         isLoading={isLoading}
         canPreview={sourceCandidates.length > 0}
-        onPreview={() => onPreview(sourceCandidates)}
+        onPreview={() => onPreview(sourceCandidates.slice(0, previewLimit))}
+        previewLimit={previewLimit}
+        onPreviewLimitChange={setPreviewLimit}
+        totalCount={sourceCandidates.length}
+        previewLimitOptions={RANKING_PREVIEW_LIMIT_OPTIONS}
       />
 
       {rankedCandidates !== null && (

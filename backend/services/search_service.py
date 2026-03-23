@@ -27,6 +27,7 @@ async def search(request: SearchRequest) -> SearchResponse:
     candidates, total_count, cursor = await crustdata_client.search_candidates(
         filters=request.filters,
         preview_only=request.preview_only,
+        preview_limit=request.preview_limit,
     )
 
     result = SearchResponse(
