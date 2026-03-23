@@ -11,10 +11,17 @@ import { FilterPanelHeader } from './filters/filter-panel-header';
 import { defaultFilterValues, filterSchema, type FilterFormValues } from './filters/schema';
 import { TitleFilter } from './filters/title-filter';
 
-const FILTERS: Record<string, { label: string, value: string, component?: React.ReactNode }[]> = {
+interface FilterEntry {
+  label: string;
+  value: string;
+  component?: React.ReactNode;
+  dirtyKey?: keyof FilterFormValues;
+}
+
+const FILTERS: Record<string, FilterEntry[]> = {
   Person: [
-    { label: 'Title', value: 'title', component: <TitleFilter /> },
-    { label: 'Country', value: 'country', component: <CountryFilter /> },
+    { label: 'Title', value: 'title', component: <TitleFilter />, dirtyKey: 'title' },
+    { label: 'Country', value: 'country', component: <CountryFilter />, dirtyKey: 'country' },
     { label: 'State / Province', value: 'state' },
     { label: 'Region / City', value: 'city' },
     { label: 'Keywords', value: 'keywords' },
@@ -30,7 +37,7 @@ const FILTERS: Record<string, { label: string, value: string, component?: React.
     { label: 'Field of study', value: 'field_of_study' },
   ],
   Experience: [
-    { label: 'Years total', value: 'years_experience_min', component: <ExperienceRangeFilter /> },
+    { label: 'Years total', value: 'years_experience_min', component: <ExperienceRangeFilter />, dirtyKey: 'experience' },
     { label: 'Tenure', value: 'tenure_months_min' },
     { label: 'Connections', value: 'connections_min' },
   ],
@@ -53,8 +60,18 @@ export function FilterPanel({ onSearch, externalFilters }: FilterPanelProps) {
   });
 
   useEffect(() => {
-    if (externalFilters) methods.reset(externalFilters);
+    if (externalFilters) methods.reset(externalFilters, { keepDefaultValues: true });
   }, [externalFilters]);
+
+  const dirtyFields = methods.formState.dirtyFields;
+
+  const isDirty = (dirtyKey?: keyof FilterFormValues): boolean => {
+    if (!dirtyKey) return false;
+    if (dirtyKey === 'experience') {
+      return !!(dirtyFields.experience?.from || dirtyFields.experience?.to);
+    }
+    return !!((dirtyFields[dirtyKey] as unknown[])?.length);
+  };
 
   const onSubmit = (data: FilterFormValues) => {
     onSearch(data);
@@ -79,7 +96,12 @@ export function FilterPanel({ onSearch, externalFilters }: FilterPanelProps) {
                   <Collapsible key={filter.value} className="border-b border-gray-200">
                     <CollapsibleTrigger asChild className="text-sm px-4 py-3 rounded-none hover:bg-gray-50 items-center w-full">
                       <div className="group flex items-center justify-between gap-1.5">
-                        {filter.label}
+                        <div className="flex items-center gap-1.5">
+                          {isDirty(filter.dirtyKey) && (
+                            <span className="size-1.5 rounded-full bg-primary shrink-0" />
+                          )}
+                          {filter.label}
+                        </div>
                         <ChevronRightIcon className="size-3 group-data-[state=open]:rotate-90 disabled:opacity-50" />
                       </div>
                     </CollapsibleTrigger>
