@@ -1,7 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
 
 import { AppLayout } from '@/layouts/app-layout';
-import { DashboardPage } from '@/pages/dashboard-page';
 import { NotFoundPage } from '@/pages/not-found-page';
 import { RankingPage } from '@/pages/ranking-page';
 import { SearchPage } from '@/pages/search-page';
@@ -10,13 +9,8 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: <AppLayout />,
-    handle: { crumb: 'Jooba' },
+    handle: { crumb: 'Jooba OS' },
     children: [
-      {
-        index: true,
-        element: <DashboardPage />,
-        handle: { crumb: 'Dashboard' },
-      },
       {
         path: 'roles/:roleId/search',
         element: <SearchPage />,
