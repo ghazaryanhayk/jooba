@@ -123,6 +123,22 @@ export async function getRoleFilters(roleId: string): Promise<RoleFiltersRespons
   return response.json();
 }
 
+export async function stopSearch(
+  roleId: string,
+  searchId: string,
+): Promise<SearchStatusResponse> {
+  const response = await fetch(`/api/roles/${roleId}/searches/${searchId}/stop`, {
+    method: 'POST',
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.detail ?? `Failed to stop search: ${response.status}`);
+  }
+
+  return response.json();
+}
+
 export async function getSearchStatus(
   roleId: string,
   searchId: string,

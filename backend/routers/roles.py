@@ -85,6 +85,11 @@ async def _background_full_search(search_id: str, filters: SearchFilters) -> Non
         try:
             cursor: str | None = None
             while True:
+                status_result = await db.execute(select(Search.status).where(Search.id == search_id))
+                current_status = status_result.scalar_one()
+                if current_status != SearchStatus.running:
+                    return
+
                 candidates, _total_count, next_cursor = await crustdata_client.search_candidates(
                     filters, preview_only=False, cursor=cursor,
                 )
@@ -109,6 +114,27 @@ async def _background_full_search(search_id: str, filters: SearchFilters) -> Non
                 update(Search).where(Search.id == search_id).values(status=SearchStatus.failed)
             )
             await db.commit()
+
+
+@router.post('/{role_id}/searches/{search_id}/stop', response_model=SearchStatusResponse)
+async def stop_search(
+    role_id: str,
+    search_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> SearchStatusResponse:
+    result = await db.execute(
+        select(Search).where(Search.id == search_id, Search.role_id == role_id)
+    )
+    search = result.scalar_one_or_none()
+    if search is None:
+        raise HTTPException(status_code=404, detail='Search not found')
+    if search.status != SearchStatus.running:
+        return SearchStatusResponse(status=search.status.value)
+    await db.execute(
+        update(Search).where(Search.id == search_id).values(status=SearchStatus.stopped)
+    )
+    await db.commit()
+    return SearchStatusResponse(status=SearchStatus.stopped.value)
 
 
 @router.get('/{role_id}/searches/{search_id}/status', response_model=SearchStatusResponse)
