@@ -160,7 +160,7 @@ export function CandidateList({ roleId, filters, savedFilters, onApplyFilters }:
               type="button"
               onClick={() => onApplyFilters(savedFilters ?? suggestedFilters)}
             >
-              {savedFilters ? 'Apply last search' : 'Apply suggested filters'}
+              {savedFilters ? 'Apply last search filters' : 'Apply suggested filters'}
             </Button>
           </div>
         )}

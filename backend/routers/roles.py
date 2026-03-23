@@ -1,24 +1,17 @@
-import asyncio
-import logging
-
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from clients.crustdata_client import crustdata_client
 from db.models.candidate import Candidate
 from db.models.role import Role
 from db.models.search import Search, SearchStatus
 from db.models.search_candidate import SearchCandidate
-from db.session import AsyncSessionLocal, get_db
+from db.session import get_db
 from schemas.candidate import CandidateSchema
 from schemas.role import RoleCandidatesResponse, RoleFiltersResponse, RoleSchema, RolesResponse, RunSearchRequest, RunSearchResponse, SearchStatusResponse
-from schemas.search import SearchFilters
+from services import search_service
 
-logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/roles', tags=['roles'])
-
-RATE_LIMIT_SLEEP = 1.0
 
 
 @router.get('', response_model=RolesResponse)
@@ -47,73 +40,12 @@ async def run_full_search(
     db.add(search)
     await db.commit()
 
-    background_tasks.add_task(_background_full_search, search.id, request.filters)
+    background_tasks.add_task(search_service.run_background_search, search.id, request.filters)
 
     return RunSearchResponse(
         search_id=search.id,
         status=SearchStatus.running.value,
     )
-
-async def _persist_candidates(
-    db: AsyncSession,
-    search_id: str,
-    candidates_data: list[CandidateSchema],
-) -> None:
-    candidate_rows = [
-        Candidate(
-            name=c.name,
-            title=c.title,
-            company=c.company,
-            headline=c.headline,
-            summary=c.summary,
-            avatar_url=c.avatar_url,
-        )
-        for c in candidates_data
-    ]
-    db.add_all(candidate_rows)
-    await db.flush()
-
-    db.add_all([
-        SearchCandidate(search_id=search_id, candidate_id=row.id)
-        for row in candidate_rows
-    ])
-    await db.commit()
-
-
-async def _background_full_search(search_id: str, filters: SearchFilters) -> None:
-    async with AsyncSessionLocal() as db:
-        try:
-            cursor: str | None = None
-            while True:
-                status_result = await db.execute(select(Search.status).where(Search.id == search_id))
-                current_status = status_result.scalar_one()
-                if current_status != SearchStatus.running:
-                    return
-
-                candidates, _total_count, next_cursor = await crustdata_client.search_candidates(
-                    filters, preview_only=False, cursor=cursor,
-                )
-                if candidates:
-                    await _persist_candidates(db, search_id, candidates)
-
-                cursor = next_cursor
-                print(cursor)
-                if not cursor:
-                    break
-
-                await asyncio.sleep(RATE_LIMIT_SLEEP)
-
-            await db.execute(
-                update(Search).where(Search.id == search_id).values(status=SearchStatus.completed)
-            )
-            await db.commit()
-
-        except Exception:
-            logger.exception('Background search %s failed', search_id)
-            await db.execute(
-                update(Search).where(Search.id == search_id).values(status=SearchStatus.failed)
-            )
-            await db.commit()
 
 
 @router.post('/{role_id}/searches/{search_id}/stop', response_model=SearchStatusResponse)
