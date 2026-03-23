@@ -16,6 +16,19 @@ export async function getRoles(): Promise<RolesResponse> {
   return res.json();
 }
 
+export async function createRole(name: string): Promise<RoleSchema> {
+  const res = await fetch('/api/roles', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.detail ?? `Failed to create role: ${res.status}`);
+  }
+  return res.json();
+}
+
 export interface CandidateSchema {
   id: string;
   name: string;

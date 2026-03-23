@@ -9,6 +9,10 @@ class RoleSchema(BaseModel):
     name: str
 
 
+class CreateRoleRequest(BaseModel):
+    name: str
+
+
 class RolesResponse(BaseModel):
     roles: list[RoleSchema]
 

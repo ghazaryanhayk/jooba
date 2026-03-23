@@ -8,7 +8,7 @@ from db.models.search import Search, SearchStatus
 from db.models.search_candidate import SearchCandidate
 from db.session import get_db
 from schemas.candidate import CandidateSchema
-from schemas.role import RoleCandidatesResponse, RoleFiltersResponse, RoleSchema, RolesResponse, RunSearchRequest, RunSearchResponse, SearchStatusResponse
+from schemas.role import CreateRoleRequest, RoleCandidatesResponse, RoleFiltersResponse, RoleSchema, RolesResponse, RunSearchRequest, RunSearchResponse, SearchStatusResponse
 from services import search_service
 
 router = APIRouter(prefix='/roles', tags=['roles'])
@@ -18,6 +18,15 @@ router = APIRouter(prefix='/roles', tags=['roles'])
 async def list_roles(db: AsyncSession = Depends(get_db)) -> RolesResponse:
     result = await db.execute(select(Role))
     return RolesResponse(roles=[RoleSchema(id=r.id, name=r.name) for r in result.scalars()])
+
+
+@router.post('', response_model=RoleSchema, status_code=201)
+async def create_role(request: CreateRoleRequest, db: AsyncSession = Depends(get_db)) -> RoleSchema:
+    role = Role(name=request.name)
+    db.add(role)
+    await db.commit()
+    await db.refresh(role)
+    return RoleSchema(id=role.id, name=role.name)
 
 
 @router.post('/{role_id}/searches/run', response_model=RunSearchResponse)

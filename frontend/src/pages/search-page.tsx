@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { CandidateList } from '@/components/search/candidate-list';
@@ -10,6 +10,11 @@ export function SearchPage() {
   const { roleId } = useParams<{ roleId: string }>();
   const [filters, setFilters] = useState<FilterFormValues | null>(null);
   const [pendingExternalFilters, setPendingExternalFilters] = useState<FilterFormValues | null>(null);
+
+  useEffect(() => {
+    setFilters(null);
+    setPendingExternalFilters(null);
+  }, [roleId]);
 
   const { data: roleFiltersData } = useRoleFilters(roleId!);
   const savedFilters = roleFiltersData?.filters ?? null;
@@ -26,6 +31,7 @@ export function SearchPage() {
       </div>
       <div className="col-span-9">
         <CandidateList
+          key={roleId}
           roleId={roleId!}
           filters={filters}
           savedFilters={savedFilters}
