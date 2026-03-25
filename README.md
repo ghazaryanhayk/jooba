@@ -117,14 +117,12 @@ The frontend calls the API through a **Vite proxy**: browser requests to `/api/`
 From the repo root:
 
 ```bash
-cd backend && python -m pytest
+cd backend && python3 -m pytest -v
 ```
 
 ```bash
 cd frontend && npm run test
 ```
-
-The test suites are in place and passing. Most of the test code was drafted with AI coding assistants and then checked against the implementation—not a substitute for a long-lived, human-owned test strategy, but useful for regression safety on the pieces they cover.
 
 ### Design Notes
 
@@ -137,8 +135,6 @@ The Figma file did not include a defined theme (color tokens, typography scale, 
 - **Candidate annotations** and **Like / Dislike** actions
 - **Full ranking run** — only preview-mode ranking is implemented; running ranking across all search results was explicitly skipped
 - **Additional filters** — only 3 filters were built as examples; expanding the set is straightforward but was not the focus
-
-
 
 This was also my first time building a backend application in Python. The FastAPI side of the codebase may not follow all Python conventions perfectly, but the structure and patterns were chosen with clarity and maintainability in mind.
 
