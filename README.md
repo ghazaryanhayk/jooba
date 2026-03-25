@@ -109,6 +109,23 @@ The frontend calls the API through a **Vite proxy**: browser requests to `/api/`
 - Define ranking criteria through a criteria panel
 - Preview-mode ranking: candidates are scored and ranked based on the criteria using OpenAI
 
+**Tests**
+
+- **Backend**: `pytest` suite in `backend/tests/` (cache, Crustdata client behavior, and related units; dummy env vars are set in `conftest.py`, so you do not need Docker or real API keys to run them)
+- **Frontend**: Vitest + Testing Library in `frontend/` (`*.test.ts` / `*.test.tsx` alongside components and hooks)
+
+From the repo root:
+
+```bash
+cd backend && python -m pytest
+```
+
+```bash
+cd frontend && npm run test
+```
+
+The test suites are in place and passing. Most of the test code was drafted with AI coding assistants and then checked against the implementation—not a substitute for a long-lived, human-owned test strategy, but useful for regression safety on the pieces they cover.
+
 ### Design Notes
 
 The Figma file did not include a defined theme (color tokens, typography scale, spacing). The closest available shadcn/ui preset was chosen as a starting point. Colors and sizes may differ slightly from the mockups.
